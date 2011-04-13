@@ -12,11 +12,11 @@ class LetterCountWorker < CollectInject::WorkerBase
 
   # sums count of appearances of certain character
   def reduce key, list
-    list.inject(&:+)
+    [key, list.flatten.inject(&:+)]
   end
 end
 
 manager = CollectInject::Manager.new(LetterCountWorker, 3)
 data = 'The quick brown fox jumps over the lazy dog'.chars
 p manager.run(data)
-#=> {"T"=>1, "u"=>2, "h"=>2, "c"=>1, "z"=>1, "j"=>1, "l"=>1, "x"=>1, "a"=>1, "w"=>1, "f"=>1, "m"=>1, "t"=>1, "d"=>1, "k"=>1, "r"=>2, "y"=>1, " "=>8, "i"=>1, "o"=>4, "s"=>1, "v"=>1, "e"=>3, "g"=>1, "q"=>1, "b"=>1, "n"=>1, "p"=>1}
+#=> [["i", 1], ["o", 4], ["s", 1], ["e", 3], ["h", 2], ["w", 1], ["f", 1], ["m", 1], ["t", 1], ["d", 1], ["k", 1], ["r", 2], ["j", 1], ["T", 1], [" ", 8], ["x", 1], ["a", 1], ["q", 1], ["b", 1], ["z", 1], ["p", 1], ["u", 2], ["v", 1], ["g", 1], ["c", 1], ["n", 1], ["l", 1], ["y", 1]]

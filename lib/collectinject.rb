@@ -10,15 +10,30 @@ module CollectInject
       reset
     end
 
+    # runs +map+ on each item in an input chunk and emits its result
+    def map_items items
+      items.each do |item|
+        map_emit(*map(item))
+      end
+    end
+
     # map method should receive an item which should be processed
     # returns corresponding (key, value) pair
+    # This is just example implementation and should be overridden in inherited class
     def map item
-      return [:key, :value]
+      [:key, item]
     end
 
     # reduce processes a list generated for each key and returns a single value
+    # This is just example implementation and should be overridden in inherited class
     def reduce key, list
-      return :result
+      :result
+    end
+
+    # stores result of single +map+ operation to intermediate data store
+    def map_emit key, value
+      @intermediate_data[key] ||= []
+      @intermediate_data[key] << value
     end
 
     # clears all local storage, preparing for be filled with new data
@@ -26,7 +41,7 @@ module CollectInject
       @map_data = nil
       @reduce_data = {}
       @intermediate_data = {}
-      @output_data = {}
+      @output_data = []
     end
 
     # Feed worker with initial dataset (usually a chunk of original input data)
@@ -37,23 +52,19 @@ module CollectInject
     # between map and reduce, feed reduce with appropriate data
     def append_reduce_data key, list
       @reduce_data[key] ||= []
-      @reduce_data[key] += list
+      @reduce_data[key] << list
     end
 
     # run map on initial data chunk
     def run_map
-      @map_data.each do |item|
-        key, value = map item
-        @intermediate_data[key] ||= []
-        @intermediate_data[key] << value
-      end
+      map_items @map_data
     end
 
     # run reduce on data processed by map
     def run_reduce
       @reduce_data.each do |key, list|
         result = reduce key, list
-        @output_data[key] = result
+        @output_data << result
       end
     end
   end
@@ -89,7 +100,7 @@ module CollectInject
 
       # distributing data for reduce phase
       @workers.each do |worker|
-  #      p worker.intermediate_data
+#        p worker.intermediate_data
         worker.intermediate_data.each do |k, v|
           @workers[get_reducer_index(k)].append_reduce_data(k, v)
         end
@@ -103,9 +114,7 @@ module CollectInject
       }.map(&:join) # waiting for all to finish
 
       # collect data from reducers and return it
-      @workers.inject({}){|acc, worker|
-        acc.merge(worker.output_data)
-      }
+      @workers.map(&:output_data).inject(&:+)
     end
   end
 end
