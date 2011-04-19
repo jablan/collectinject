@@ -10,9 +10,8 @@ require 'collectinject'
 class SortWorker < CollectInject::WorkerBase
   # map_items receives a chunk of items and simply sorts it using Array#sort
   def map_items items
-    items.sort.each do |item|
-      map_emit 1, item
-    end
+    # use constant key as everything should go to the same reducer
+    map_emit 1, items.sort
   end
 
   # reduce merges sorted arrays into one resulting array, observing order

@@ -52,7 +52,7 @@ module CollectInject
     # between map and reduce, feed reduce with appropriate data
     def append_reduce_data key, list
       @reduce_data[key] ||= []
-      @reduce_data[key] << list
+      @reduce_data[key] += list
     end
 
     # run map on initial data chunk
