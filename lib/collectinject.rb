@@ -6,7 +6,7 @@ module CollectInject
     attr_reader :intermediate_data # mapper outputs here
     attr_reader :output_data # reducer outputs here
 
-    def initialize 
+    def initialize
       reset
     end
 
@@ -48,7 +48,7 @@ module CollectInject
     def load_map_data data
       @map_data = data
     end
-    
+
     # between map and reduce, feed reduce with appropriate data
     def append_reduce_data key, list
       @reduce_data[key] ||= []
